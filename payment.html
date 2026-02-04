@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>skivva payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-surface: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --neon-accent: #8b5cf6; 
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0f0c29;
+            background: linear-gradient(to right, #24243e, #1a1638, #0f0c29);
+            overflow: hidden; 
+            touch-action: none; 
+        }
+        .glass-card {
+            background: var(--glass-surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .liquid-input {
+            background: rgba(0, 0, 0, 0.25);
+            box-shadow: inset 4px 4px 10px rgba(0,0,0,0.3), 
+                        inset -4px -4px 10px rgba(255,255,255,0.03);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .liquid-input:focus-within {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4),
+                        inset 2px 2px 5px rgba(0,0,0,0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .chip.active {
+            background: rgba(139, 92, 246, 0.5); 
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            transform: scale(1.05);
+        }
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 12s infinite ease-in-out;
+            will-change: transform;
+        }
+        @keyframes float {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(40px, -60px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .slider-container {
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .slider-handle {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4), inset 1px 1px 2px rgba(255,255,255,0.4);
+            cursor: grab;
+            z-index: 20;
+        }
+        .slider-handle:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.4) 100%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center relative select-none">
+    <div class="blob bg-purple-700 w-96 h-96 rounded-full top-0 left-0 -translate-x-1/3 -translate-y-1/3"></div>
+    <div class="blob bg-indigo-800 w-80 h-80 rounded-full bottom-0 right-0 translate-x-1/3 translate-y-1/3 animation-delay-2000"></div>
+    <div class="blob bg-cyan-900 w-64 h-64 rounded-full top-1/2 left-1/4 opacity-40 animation-delay-4000"></div>
+    <main class="glass-card w-full max-w-sm sm:max-w-md mx-4 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center gap-6 relative z-10 border-t border-l border-white/10">
+        <header class="text-center w-full">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-widest lowercase drop-shadow-lg">skivva payment</h1>
+            <div class="h-1 w-12 bg-indigo-500 rounded-full mx-auto mt-2 opacity-70"></div>
+        </header>
+        <div class="w-full relative group mt-2">
+            <div class="liquid-input w-full h-24 rounded-3xl flex items-center justify-center relative overflow-hidden border border-transparent">
+                <input type="number" id="amountInput" placeholder="0" class="bg-transparent text-white text-5xl font-bold text-center w-full h-full outline-none z-10 placeholder-indigo-400/20" value="500">
+                <span class="text-3xl text-indigo-300 font-light absolute right-6 pointer-events-none opacity-60">₽</span>
+            </div>
+            <p class="text-center text-indigo-300/50 text-xs mt-2 font-light">Введите сумму перевода</p>
+        </div>
+        <div class="grid grid-cols-3 sm:flex sm:flex-wrap justify-center gap-3 w-full">
+            <button class="chip text-white py-2 px-3 rounded-2xl text-sm font-medium" onclick="updateAmount(100)">100₽</button>
+            <button class="chip text-white py-2 px-3 rounded-2xl text-sm font-medium" onclick="updateAmount(250)">250₽</button>
+            <button class="chip active text-white py-2 px-3 rounded-2xl text-sm font-medium" onclick="updateAmount(500)">500₽</button>
+            <button class="chip text-white py-2 px-3 rounded-2xl text-sm font-medium" onclick="updateAmount(1000)">1000₽</button>
+            <button class="chip text-white py-2 px-3 rounded-2xl text-sm font-medium" onclick="updateAmount(2000)">2000₽</button>
+        </div>
+        <div class="flex-grow h-4"></div>
+        <div class="w-full slider-container h-16 rounded-full flex items-center p-1.5 relative overflow-hidden" id="sliderContainer">
+            <div class="absolute inset-0 flex items-center justify-center z-0">
+                <span id="sliderText" class="shimmer-text font-semibold tracking-wide text-sm uppercase pointer-events-none">Потяни для оплаты</span>
+            </div>
+            <div id="sliderFill" class="absolute left-0 top-0 bottom-0 bg-indigo-600/40 w-0 z-0 transition-all duration-75"></div>
+            <div id="sliderHandle" class="slider-handle h-[3.25rem] w-[3.25rem] rounded-full flex items-center justify-center text-white relative z-10 will-change-transform">
+                <svg id="arrowIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <svg id="loadingIcon" class="animate-spin h-6 w-6 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        </div>
+    </main>
+    <script>
+        const WALLET_NUMBER = "4100119443593119";
+        const PAYMENT_LABEL = "Skivva Payment";       
+        const amountInput = document.getElementById('amountInput');
+        const chips = document.querySelectorAll('.chip');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const sliderHandle = document.getElementById('sliderHandle');
+        const sliderFill = document.getElementById('sliderFill');
+        const sliderText = document.getElementById('sliderText');
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let maxSlide = 0;
+        function updateAmount(val) {
+            amountInput.value = val;
+            highlightChip(val);
+        }
+        function highlightChip(val) {
+            chips.forEach(chip => {
+                chip.classList.remove('active');
+                if (parseInt(chip.innerText) == val) {
+                    chip.classList.add('active');
+                }
+            });
+        }
+        amountInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            highlightChip(val);
+        });
+        function initSlider() {
+            maxSlide = sliderContainer.clientWidth - sliderHandle.clientWidth - 12; 
+        }
+        window.addEventListener('resize', initSlider);
+        window.addEventListener('load', initSlider);
+        initSlider();
+        sliderHandle.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+        sliderHandle.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchmove', drag, {passive: false});
+        window.addEventListener('touchend', endDrag);
+        function startDrag(e) {
+            if (sliderHandle.classList.contains('locked')) return;
+            isDragging = true;
+            startX = (e.pageX || e.touches[0].pageX);
+            sliderHandle.style.transition = 'none'; 
+            sliderFill.style.transition = 'none';
+        }
+        function drag(e) {
+            if (!isDragging) return;
+            const pageX = (e.pageX || e.touches[0].pageX);
+            const delta = pageX - startX;
+            currentTranslate = Math.max(0, Math.min(delta, maxSlide));
+            updateVisuals(currentTranslate);
+            if (currentTranslate >= maxSlide * 0.95) {
+                isDragging = false;
+                processPayment();
+            }
+        }
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            sliderHandle.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            sliderFill.style.transition = 'width 0.4s ease';
+            currentTranslate = 0;
+            updateVisuals(0);
+        }
+        function updateVisuals(x) {
+            sliderHandle.style.transform = `translateX(${x}px)`;
+            sliderFill.style.width = `${x + sliderHandle.clientWidth / 2}px`;
+            const opacity = 1 - (x / (maxSlide * 0.8));
+            sliderText.style.opacity = Math.max(0, opacity);
+        }
+        function processPayment() {
+            const amount = amountInput.value;
+            if (!amount || amount < 10) { 
+                alert("Минимальная сумма перевода 10₽");
+                endDrag(); 
+                return;
+            }
+            sliderHandle.classList.add('locked');
+            sliderHandle.style.transform = `translateX(${maxSlide}px)`;
+            sliderFill.style.width = `100%`;
+            document.getElementById('arrowIcon').classList.add('hidden');
+            document.getElementById('loadingIcon').classList.remove('hidden');
+            setTimeout(() => {
+                createAndSubmitForm(amount);
+            }, 800);
+        }
+        function createAndSubmitForm(amount) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://yoomoney.ru/quickpay/confirm.xml'; 
+            form.style.display = 'none';
+            const fields = {
+                'receiver': WALLET_NUMBER,    
+                'quickpay-form': 'shop',           
+                'targets': `Оплата заказа ${Date.now()}`, 
+                'paymentType': 'AC',               
+                'sum': amount,                     
+                'label': PAYMENT_LABEL,            
+                'successURL': 'https://t.me/skivva?text=%D0%BE%D1%82%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%20%D0%BF%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%2C%20%D0%BA%D1%83%D0%BF%D0%B8%20%D1%81%D0%B5%D0%B1%D0%B5%20%D1%87%D1%82%D0%BE-%D0%BD%D0%B8%D0%B1%D1%83%D0%B4%D1%8C' 
+            };
+            for (const key in fields) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+            document.body.appendChild(form);
+            form.submit();
+            setTimeout(() => {
+                location.reload(); 
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
